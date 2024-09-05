@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Picture
+*.png *.jpg *.PNG *.JPG
