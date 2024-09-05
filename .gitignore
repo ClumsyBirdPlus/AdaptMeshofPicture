@@ -33,3 +33,5 @@
 
 # Picture
 *.png *.jpg *.PNG *.JPG
+
+*.cfg *.e *.n *.s
