@@ -29,7 +29,7 @@ std::vector<int> kMeansGrayScaleCenters(cv::Mat& grayImage, int k) {
     }
   }
 
-  // 对结果向量进行排序，从暗到亮（从小到大）
-  std::sort(result.begin(), result.end());
+  // 对结果向量进行排序
+  std::sort(result.begin(), result.end(), std::greater<int>());
   return result;
 }

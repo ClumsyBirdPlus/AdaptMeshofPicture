@@ -56,10 +56,11 @@ int main(int argc, char **argv)
   // irregular_mesh.globalRefine(4);
 
   // 开始加密
-  //for (refineLevel = 0; refineLevel != totalLevel - 1; ++refineLevel) {
-  for (refineLevel = totalLevel - 2; refineLevel != -1; --refineLevel) {
+  for (refineLevel = 0; refineLevel != totalLevel - 1; ++refineLevel) {
+  // for (refineLevel = totalLevel - 2; refineLevel != -1; --refineLevel) {
   // refineLevel = 0;
   // for (int i = 0; i < 2; ++i) {
+    for (int count = 0; count < refineLevel; ++count) {
     /// 对非正则网格做半正则化和正则化
     irregular_mesh.semiregularize();
     irregular_mesh.regularize(false);
@@ -94,6 +95,7 @@ int main(int argc, char **argv)
     mesh_adaptor.setIndicator(indicator);
     mesh_adaptor.tolerence() = 2.5e-10; /// 自适应的忍量
     mesh_adaptor.adapt(); /// 完成自适应
+    }
   };
 
   RegularMesh<2>& regular_mesh = irregular_mesh.regularMesh();
