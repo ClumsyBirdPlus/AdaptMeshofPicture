@@ -9,7 +9,9 @@ int main(int argc, char **argv)
   // std::cout << "Enter the path to the image file: ";
   // std::getline(std::cin, inputPath);
   // 读取图像
-  std::string inputPath = "hu.png";
+  std::string inputPath =
+    "hu.png"
+    ;
   cv::Mat image_origin = cv::imread(inputPath, cv::IMREAD_COLOR);
   if (image_origin.empty()) {
     std::cerr << "Could not open or find the image!" << std::endl;
@@ -27,21 +29,21 @@ int main(int argc, char **argv)
   int refineLevel;
   int totalLevel = 6;
   // cv::GaussianBlur(squareImage, squareImage, cv::Size(5, 5), 1.5);
-  cv::Mat histImage;
-  cv::equalizeHist(squareImage, histImage);
+  // cv::Mat histImage;
+  // cv::equalizeHist(squareImage, histImage);
 
   auto grayCenters = kMeansGrayScaleCenters(squareImage, totalLevel);
 
-  // 查找图像中的轮廓
-  cv::Mat edges;
-  cv::Canny(histImage, edges, 100, 200);
-  std::vector<std::vector<cv::Point>> contours;
-  std::vector<cv::Vec4i> hierarchy;
-  cv::findContours(edges, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
-  // 在原图像上绘制轮廓
-  cv::drawContours(squareImage, contours, -1, cv::Scalar(grayCenters[totalLevel-1]), 2);
+  // // 查找图像中的轮廓
+  // cv::Mat edges;
+  // cv::Canny(histImage, edges, 100, 200);
+  // std::vector<std::vector<cv::Point>> contours;
+  // std::vector<cv::Vec4i> hierarchy;
+  // cv::findContours(edges, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
+  // // 在原图像上绘制轮廓
+  // cv::drawContours(squareImage, contours, -1, cv::Scalar(0), 2); //边缘颜色
 
-  cv::imwrite("EdgeImage.png", edges);
+  // cv::imwrite("EdgeImage.png", edges);
   cv::imwrite("ClusteredImage.png", squareImage);
 
   grayCenters.push_back(0);
@@ -57,7 +59,8 @@ int main(int argc, char **argv)
   // irregular_mesh.globalRefine(4);
 
   // 开始加密
-  for (refineLevel = 3; refineLevel != totalLevel+1; ++refineLevel) {
+  for (auto it = grayCenters.begin()+1; it != grayCenters.end(); ++it) {
+  // for (refineLevel = 3; refineLevel != totalLevel; ++refineLevel) {
   // for (refineLevel = totalLevel - 2; refineLevel != -1; --refineLevel) {
   // refineLevel = 0;
   // for (int i = 0; i < 2; ++i) {
@@ -83,7 +86,7 @@ int main(int argc, char **argv)
       double area = ((p1[0] - p0[0])*(p2[1] - p0[1]) -
                      (p2[0] - p0[0])*(p1[1] - p0[1]));
       if (
-          ifRefine(getGrayValueAt(squareImage,p[0],p[1]), grayCenters[refineLevel])
+          ifRefine(getGrayValueAt(squareImage,p[0],p[1]), *it)
           )
         { /// 在环状区域中设置指示子
           indicator[i] = area;
@@ -99,8 +102,10 @@ int main(int argc, char **argv)
     mesh_adaptor.tolerence() = 2.5e-6; /// 自适应的忍量
     mesh_adaptor.adapt(); /// 完成自适应
     }
+    if (it == grayCenters.begin()+1) {
+      it++;
+    }
   };
-
   RegularMesh<2>& regular_mesh = irregular_mesh.regularMesh();
   regular_mesh.writeOpenDXData("result.dx");
   std::cout << "Successful Output" << "\n";
