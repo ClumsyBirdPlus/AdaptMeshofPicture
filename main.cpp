@@ -39,11 +39,12 @@ int main(int argc, char **argv)
   std::vector<cv::Vec4i> hierarchy;
   cv::findContours(edges, contours, hierarchy, cv::RETR_TREE, cv::CHAIN_APPROX_SIMPLE);
   // 在原图像上绘制轮廓
-  cv::drawContours(squareImage, contours, -1, cv::Scalar(grayCenters[totalLevel-2]), 2);
-
+  cv::drawContours(squareImage, contours, -1, cv::Scalar(grayCenters[totalLevel-1]), 2);
 
   cv::imwrite("EdgeImage.png", edges);
   cv::imwrite("ClusteredImage.png", squareImage);
+
+  grayCenters.push_back(0);
 
   // return 0;
 
@@ -56,11 +57,11 @@ int main(int argc, char **argv)
   // irregular_mesh.globalRefine(4);
 
   // 开始加密
-  for (refineLevel = 0; refineLevel != totalLevel - 1; ++refineLevel) {
+  for (refineLevel = 3; refineLevel != totalLevel+1; ++refineLevel) {
   // for (refineLevel = totalLevel - 2; refineLevel != -1; --refineLevel) {
   // refineLevel = 0;
   // for (int i = 0; i < 2; ++i) {
-    for (int count = 0; count < refineLevel; ++count) {
+    for (int count = 0; count < 1; ++count) {
     /// 对非正则网格做半正则化和正则化
     irregular_mesh.semiregularize();
     irregular_mesh.regularize(false);
@@ -81,8 +82,9 @@ int main(int argc, char **argv)
       /// 手工计算三角形的面积
       double area = ((p1[0] - p0[0])*(p2[1] - p0[1]) -
                      (p2[0] - p0[0])*(p1[1] - p0[1]));
-      if (ifRefine(getGrayValueAt(squareImage,p[0],p[1]), grayCenters[refineLevel]) &&
-          area > 1e-6)
+      if (
+          ifRefine(getGrayValueAt(squareImage,p[0],p[1]), grayCenters[refineLevel])
+          )
         { /// 在环状区域中设置指示子
           indicator[i] = area;
         }
@@ -93,7 +95,8 @@ int main(int argc, char **argv)
     mesh_adaptor.convergenceOrder() = 0.; /// 设置收敛阶为0
     mesh_adaptor.refineStep() = 1; /// 最多允许加密一步
     mesh_adaptor.setIndicator(indicator);
-    mesh_adaptor.tolerence() = 2.5e-10; /// 自适应的忍量
+    mesh_adaptor.is_refine_only() = true;
+    mesh_adaptor.tolerence() = 2.5e-6; /// 自适应的忍量
     mesh_adaptor.adapt(); /// 完成自适应
     }
   };
