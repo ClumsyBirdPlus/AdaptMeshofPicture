@@ -55,7 +55,7 @@ int main(int argc, char **argv)
   HGeometryTree<2> h_tree;
   h_tree.readEasyMesh("Coarse");
 
-  /// 在背景网格上建立第一个非正则网格，并均匀加密三次
+  /// 在背景网格上建立第一个非正则网格
   IrregularMesh<2> irregular_mesh(h_tree);
   // irregular_mesh.globalRefine(4);
 
