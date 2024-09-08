@@ -11,6 +11,8 @@ int main(int argc, char **argv)
   // 读取图像
   std::string inputPath =
     "hu.png"
+    // "zhang.jpg"
+    // "wang.jpg"
     ;
   cv::Mat image_origin = cv::imread(inputPath, cv::IMREAD_COLOR);
   if (image_origin.empty()) {
@@ -20,20 +22,21 @@ int main(int argc, char **argv)
   // 转为灰度图片
   cv::Mat squareImage = convertToGrey(image_origin);
 
-  //int imageSize = squareImage.cols;
-  // 压缩图像
-  int imageSize = 1024;
-  cv::resize(squareImage, squareImage, cv::Size(imageSize, imageSize), 0, 0, cv::INTER_LINEAR);
+  int imageSize = squareImage.cols;
+  // // 压缩图像
+  // int imageSize = 1024;
+  // cv::resize(squareImage, squareImage, cv::Size(imageSize, imageSize), 0, 0, cv::INTER_LINEAR);
 
   // double minArea = MAX FLOAT;
-  int refineLevel;
   int totalLevel = 6;
+  std::vector<int> refineTimes = {0,1,0,1,1,1,1};
+
   // cv::GaussianBlur(squareImage, squareImage, cv::Size(5, 5), 1.5);
   // cv::Mat histImage;
   // cv::equalizeHist(squareImage, histImage);
 
   auto grayCenters = kMeansGrayScaleCenters(squareImage, totalLevel);
-
+  grayCenters.push_back(0);
   // // 查找图像中的轮廓
   // cv::Mat edges;
   // cv::Canny(histImage, edges, 100, 200);
@@ -46,8 +49,6 @@ int main(int argc, char **argv)
   // cv::imwrite("EdgeImage.png", edges);
   cv::imwrite("ClusteredImage.png", squareImage);
 
-  grayCenters.push_back(0);
-
   // return 0;
 
   // 声明几何遗传树，并从 Easymesh 格式的文件中读入数据
@@ -59,12 +60,13 @@ int main(int argc, char **argv)
   // irregular_mesh.globalRefine(4);
 
   // 开始加密
-  for (auto it = grayCenters.begin()+1; it != grayCenters.end(); ++it) {
+  for (auto itTimes = refineTimes.begin(); itTimes != refineTimes.end(); ++itTimes) {
+  // for (auto itLevel = grayCenters.begin()+1; itLevel != grayCenters.end(); ++itLevel) {
   // for (refineLevel = 3; refineLevel != totalLevel; ++refineLevel) {
   // for (refineLevel = totalLevel - 2; refineLevel != -1; --refineLevel) {
   // refineLevel = 0;
   // for (int i = 0; i < 2; ++i) {
-    for (int count = 0; count < 1; ++count) {
+    for (int count = 0; count < *itTimes; ++count) {
     /// 对非正则网格做半正则化和正则化
     irregular_mesh.semiregularize();
     irregular_mesh.regularize(false);
@@ -86,7 +88,7 @@ int main(int argc, char **argv)
       double area = ((p1[0] - p0[0])*(p2[1] - p0[1]) -
                      (p2[0] - p0[0])*(p1[1] - p0[1]));
       if (
-          ifRefine(getGrayValueAt(squareImage,p[0],p[1]), *it)
+          ifRefine(getGrayValueAt(squareImage,p[0],p[1]), grayCenters[itTimes - refineTimes.begin()])
           )
         { /// 在环状区域中设置指示子
           indicator[i] = area;
@@ -99,11 +101,8 @@ int main(int argc, char **argv)
     mesh_adaptor.refineStep() = 1; /// 最多允许加密一步
     mesh_adaptor.setIndicator(indicator);
     mesh_adaptor.is_refine_only() = true;
-    mesh_adaptor.tolerence() = 2.5e-6; /// 自适应的忍量
+    mesh_adaptor.tolerence() = 2e-6; /// 自适应的忍量
     mesh_adaptor.adapt(); /// 完成自适应
-    }
-    if (it == grayCenters.begin()+1) {
-      it++;
     }
   };
   RegularMesh<2>& regular_mesh = irregular_mesh.regularMesh();

@@ -37,6 +37,11 @@ run: all
 	-easymesh Coarse
 	./run.sh
 
+viewrun: all
+	-easymesh Coarse
+	./run.sh
+	mydx
+
 mesh:
 	-easymesh Coarse
 
