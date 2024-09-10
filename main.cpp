@@ -10,21 +10,22 @@ int main(int argc, char **argv)
   // std::getline(std::cin, inputPath);
   // 读取图像
   std::string inputPath =
-    "hu.png"
-    // "zhang.jpg"
-    // "wang.jpg"
+    "hu2.jpg"
+    // "hu3.jpeg"
     ;
   // 调参
-  int totalLevel = 6;
-  std::vector<int> refineTimes = {0,1,0,1,1,1,1};
+  int totalLevel = 5;
+  std::vector<int> refineTimes = {0,1,1,1,1,1};
 
   cv::Mat image_origin = cv::imread(inputPath, cv::IMREAD_COLOR);
   if (image_origin.empty()) {
     std::cerr << "Could not open or find the image!" << std::endl;
     return -1;
   }
-  // 转为灰度图片
-  cv::Mat squareImage = convertToGrey(image_origin);
+
+  cv::Mat squareImage = convertToSquare(image_origin);
+
+
 
   int imageSize = squareImage.cols;
   // // 压缩图像
@@ -62,11 +63,6 @@ int main(int argc, char **argv)
 
   // 开始加密
   for (auto itTimes = refineTimes.begin(); itTimes != refineTimes.end(); ++itTimes) {
-    // for (auto itLevel = grayCenters.begin()+1; itLevel != grayCenters.end(); ++itLevel) {
-    // for (refineLevel = 3; refineLevel != totalLevel; ++refineLevel) {
-    // for (refineLevel = totalLevel - 2; refineLevel != -1; --refineLevel) {
-    // refineLevel = 0;
-    // for (int i = 0; i < 2; ++i) {
     for (int count = 0; count < *itTimes; ++count) {
       /// 对非正则网格做半正则化和正则化
       irregular_mesh.semiregularize();
@@ -94,7 +90,6 @@ int main(int argc, char **argv)
           { /// 在环状区域中设置指示子
             indicator[i] = area;
           }
-        // minArea =(minArea < area ? minArea : area);
       }
       /// 下面的几行调用进行自适应的函数，都是套话。
       MeshAdaptor<2> mesh_adaptor(irregular_mesh);
@@ -106,8 +101,9 @@ int main(int argc, char **argv)
       mesh_adaptor.adapt(); /// 完成自适应
     }
   };
-  RegularMesh<2>& regular_mesh = irregular_mesh.regularMesh();
-  regular_mesh.writeOpenDXData("result.dx");
+
+  irregular_mesh.regularMesh().writeOpenDXData("result.dx");
+
   std::cout << "Successful Output" << "\n";
 
   return 0;

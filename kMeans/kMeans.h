@@ -33,3 +33,32 @@ std::vector<int> kMeansGrayScaleCenters(cv::Mat& grayImage, int k) {
   std::sort(result.begin(), result.end(), std::greater<int>());
   return result;
 }
+
+
+cv::Mat kmeansSegmentation(const cv::Mat& input_image, int k) {
+    // 将图像转换为 2D 数组，每一行是一个像素的 RGB 值
+    cv::Mat data;
+    input_image.convertTo(data, CV_32F); // 转换为 float 类型以便 K-means 处理
+    data = data.reshape(1, input_image.total()); // 将图像展平成一维数据
+
+    // 设置 K-means 聚类的停止准则
+    cv::TermCriteria criteria(cv::TermCriteria::EPS + cv::TermCriteria::COUNT, 50, 1.0);
+
+    // K-means 输出
+    cv::Mat labels, centers;
+
+    // 执行 K-means 聚类
+    cv::kmeans(data, k, labels, criteria, 5, cv::KMEANS_RANDOM_CENTERS, centers);
+
+    // 将中心点转换回 uint8 格式
+    centers = centers.reshape(3, centers.rows);
+    centers.convertTo(centers, CV_8U);
+
+    // 根据聚类结果重新生成图像
+    cv::Mat segmented_image(input_image.size(), input_image.type());
+    for (int i = 0; i < input_image.total(); ++i) {
+        segmented_image.at<cv::Vec3b>(i / input_image.cols, i % input_image.cols) = centers.at<cv::Vec3b>(labels.at<int>(i));
+    }
+
+    return segmented_image;
+}

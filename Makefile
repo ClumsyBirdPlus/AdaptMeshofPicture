@@ -2,7 +2,7 @@
 CXX = mpicxx
 
 # 编译选项
-CXXFLAGS = -O2 -g `pkg-config --cflags --libs opencv4`
+CXXFLAGS = -O2 -g `pkg-config --cflags --libs opencv4` -DWITH_TBB=ON
 
 # 预处理选项
 CPPFLAGS = -I$(HOME)/.local/include
@@ -40,7 +40,7 @@ run: all
 viewrun: all
 	-easymesh Coarse
 	./run.sh
-	mydx
+	./mydx.sh
 
 mesh:
 	-easymesh Coarse

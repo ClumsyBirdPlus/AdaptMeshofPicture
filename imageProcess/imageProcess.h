@@ -1,7 +1,35 @@
 #include <opencv2/opencv.hpp>
-#include <AFEPack/HGeometry.h>
 #include <iostream>
 
+// 将给定图片转换为正方形，使用左上角的颜色填充
+cv::Mat convertToSquare(cv::Mat input_image) {
+    // 获取输入图像的宽度和高度
+    int width = input_image.cols;
+    int height = input_image.rows;
+
+    // 获取左上角像素的颜色 (BGR)
+    cv::Vec3b topLeftColor = input_image.at<cv::Vec3b>(0, 0);
+
+    // 如果图像已经是正方形，直接返回
+    if (width == height) {
+        return input_image;
+    }
+
+    // 计算目标正方形的尺寸（取宽度和高度中的较大值）
+    int squareSize = std::max(width, height);
+
+    // 创建一个正方形图像，并用左上角的颜色填充
+    cv::Mat squareImage(squareSize, squareSize, input_image.type(), topLeftColor);
+
+    // 计算要将原图放置在正方形图像中的哪个区域
+    int x_offset = (squareSize - width) / 2;
+    int y_offset = (squareSize - height) / 2;
+
+    // 将原图复制到正方形图像的中心
+    input_image.copyTo(squareImage(cv::Rect(x_offset, y_offset, width, height)));
+
+    return squareImage;
+}
 
 cv::Mat convertToGrey(cv::Mat input_image) {
   // 创建灰度图像
