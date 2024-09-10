@@ -1,7 +1,7 @@
 #include <AFEPack/HGeometry.h>
 #include "./imageProcess/imageProcess.h"
 #include "./kMeans/kMeans.h"
-
+#include "./Detector/Detector.h"
 
 int main(int argc, char **argv)
 {
@@ -13,9 +13,6 @@ int main(int argc, char **argv)
     "hu2.jpg"
     // "hu3.jpeg"
     ;
-  // 调参
-  int totalLevel = 5;
-  std::vector<int> refineTimes = {0,1,1,1,1,1};
 
   cv::Mat image_origin = cv::imread(inputPath, cv::IMREAD_COLOR);
   if (image_origin.empty()) {
@@ -25,12 +22,27 @@ int main(int argc, char **argv)
 
   cv::Mat squareImage = convertToSquare(image_origin);
 
+  // 压缩图像
+  int imageSize = 320;
+  cv::resize(squareImage, squareImage, cv::Size(imageSize, imageSize), 0, 0, cv::INTER_LINEAR);
+
+  // 模型路径（YuNet 模型文件）
+  std::string modelPath = "./Models/face_detection_yunet_2023mar.onnx";
+
+  // 检测人脸并绘制轮廓
+  auto recFace = detectFaces(squareImage, modelPath);
+  cv::imwrite("test.png", recFace);
+
+  return 0;
 
 
-  int imageSize = squareImage.cols;
-  // // 压缩图像
-  // int imageSize = 1024;
-  // cv::resize(squareImage, squareImage, cv::Size(imageSize, imageSize), 0, 0, cv::INTER_LINEAR);
+  // 调参
+  int totalLevel = 5;
+  std::vector<int> refineTimes = {0,1,1,1,1,1};
+
+
+
+  // int imageSize = squareImage.cols;
 
   // double minArea = MAX FLOAT;
   // cv::GaussianBlur(squareImage, squareImage, cv::Size(5, 5), 1.5);

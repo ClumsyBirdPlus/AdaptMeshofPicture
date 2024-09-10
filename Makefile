@@ -19,6 +19,8 @@ TARGET = main
 # 查找当前目录下所有的 .cpp 文件
 SRCS = $(wildcard *.cpp)
 
+H = $(wildcard *.h)
+
 # 将 .cpp 文件转换为对应的 .o 文件
 OBJS = $(SRCS:.cpp=.o)
 
@@ -26,14 +28,14 @@ OBJS = $(SRCS:.cpp=.o)
 all: $(TARGET)
 
 # 链接目标
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) $(H)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(TARGET) $(OBJS) $(LIBS)
 
 # 编译每个 .cpp 文件为 .o 文件
 %.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-run: all
+run: clean all
 	-easymesh Coarse
 	./run.sh
 
