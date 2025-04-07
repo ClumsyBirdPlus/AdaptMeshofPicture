@@ -10,13 +10,14 @@ int main(int argc, char **argv)
   // std::getline(std::cin, inputPath);
   // 读取图像
   std::string inputPath =
-    "hu.png"
+    "target.png"
+    // "hu.png"
     // "zhang.jpg"
     // "wang.jpg"
     ;
   // 调参
-  int totalLevel = 6;
-  std::vector<int> refineTimes = {0,1,0,1,1,1,1};
+  int totalLevel = 2;
+  std::vector<int> refineTimes = {0,1,1};
 
   cv::Mat image_origin = cv::imread(inputPath, cv::IMREAD_COLOR);
   if (image_origin.empty()) {
@@ -58,7 +59,7 @@ int main(int argc, char **argv)
 
   /// 在背景网格上建立第一个非正则网格
   IrregularMesh<2> irregular_mesh(h_tree);
-  // irregular_mesh.globalRefine(4);
+  irregular_mesh.globalRefine(6);
 
   // 开始加密
   for (auto itTimes = refineTimes.begin(); itTimes != refineTimes.end(); ++itTimes) {
@@ -77,32 +78,27 @@ int main(int argc, char **argv)
 
       Indicator<2> indicator(regular_mesh);
       for (int i = 0;i < regular_mesh.n_geometry(2);i ++) {
-        /// 这是三角形的三个顶点。对于三角形和双生三角形都是这样的。
         Point<2>& p0 = regular_mesh.point(regular_mesh.geometry(2,i).vertex(0));
         Point<2>& p1 = regular_mesh.point(regular_mesh.geometry(2,i).vertex(1));
         Point<2>& p2 = regular_mesh.point(regular_mesh.geometry(2,i).vertex(2));
 
-        /// 这是三角形的重心
         Point<2> p((p0[0] + p1[0] + p2[0])/3., (p0[1] + p1[1] + p2[1])/3.);
 
-        /// 手工计算三角形的面积
         double area = ((p1[0] - p0[0])*(p2[1] - p0[1]) -
                        (p2[0] - p0[0])*(p1[1] - p0[1]));
         if (
             ifRefine(getGrayValueAt(squareImage,p[0],p[1]), grayCenters[itTimes - refineTimes.begin()])
             )
-          { /// 在环状区域中设置指示子
+          {
             indicator[i] = area;
           }
-        // minArea =(minArea < area ? minArea : area);
       }
-      /// 下面的几行调用进行自适应的函数，都是套话。
       MeshAdaptor<2> mesh_adaptor(irregular_mesh);
-      mesh_adaptor.convergenceOrder() = 0.; /// 设置收敛阶为0
+      mesh_adaptor.convergenceOrder() = 1; /// 设置收敛阶为0
       mesh_adaptor.refineStep() = 1; /// 最多允许加密一步
       mesh_adaptor.setIndicator(indicator);
-      mesh_adaptor.is_refine_only() = true;
-      mesh_adaptor.tolerence() = 2e-6; /// 自适应的忍量
+      mesh_adaptor.is_refine_only() = false;
+      mesh_adaptor.tolerence() = 1e-5; /// 自适应的忍量
       mesh_adaptor.adapt(); /// 完成自适应
     }
   };
